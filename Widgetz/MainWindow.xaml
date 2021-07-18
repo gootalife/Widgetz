@@ -11,9 +11,9 @@
         <tb:TaskbarIcon Name="TaskTrayIcon">
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Name="WidgetMenu" Header="Widgets"/>
-                    <MenuItem Header="Settings" Click="SettingMenu_Click"/>
-                    <MenuItem Header="Quit" Click="CloseMenu_Click"/>
+                    <MenuItem Name="WidgetMenu" Header="ウィジェット"/>
+                    <MenuItem Header="設定" Click="SettingMenu_ClickAsync"/>
+                    <MenuItem Header="終了" Click="CloseMenu_Click"/>
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
             <tb:TaskbarIcon.TrayToolTip>

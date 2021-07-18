@@ -5,8 +5,25 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Widgetz"
         mc:Ignorable="d"
-        Title="SettingWindow" Height="450" Width="800">
-    <Grid>
-        
+        Title="設定" ResizeMode="NoResize" Loaded="Window_Loaded" Background="#FFEBEBEA" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterScreen">
+    <Grid Height="200" Width="400">
+        <Grid.RowDefinitions>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="150" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <ListBox Name="WidgetListBox" Grid.Column="0" Grid.Row="0" Margin="10,10,10,10" SelectionChanged="WidgetListBox_SelectionChanged"/>
+        <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="10,45,0,0" Text="表示位置(左上始点)" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="10,66,0,0" Text="X" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="76,66,0,0" Text="Y" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBox Name="PosX" Grid.Column="1" HorizontalAlignment="Left" Margin="22,66,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="40" MaxLines="1" MaxLength="4"/>
+        <TextBox Name="PosY" Grid.Column="1" HorizontalAlignment="Left" Margin="88,66,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="40" MaxLength="4" MaxLines="1"/>
+        <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="10,10,0,0" Text="ウィジェット名:" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBlock Name="WidgetName" Grid.Column="1" HorizontalAlignment="Left" Margin="79,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <CheckBox Name="AutoBoot" Content="起動時にウィジェットを起動する" Grid.Column="1" HorizontalAlignment="Left" Margin="10,89,0,0" VerticalAlignment="Top"/>
+        <Button Name="IndividualSettingButton" Content="個別設定" Grid.Column="1" HorizontalAlignment="Left" Margin="10,109,0,0" VerticalAlignment="Top" Width="83"/>
+        <Button Name="ApplyButton"  Content="適用" Grid.Column="1" HorizontalAlignment="Left" Margin="75,170,0,0" VerticalAlignment="Top" Width="80" Click="ApplyButton_Click"/>
+        <Button Name="CloseButton" Content="閉じる" Grid.Column="1" HorizontalAlignment="Left" Margin="160,170,0,0" VerticalAlignment="Top" Width="80" Click="CloseButton_Click"/>
     </Grid>
 </Window>
