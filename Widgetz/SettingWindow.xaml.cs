@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,29 +13,31 @@ namespace Widgetz {
     /// SettingWindow.xaml の相互作用ロジック
     /// </summary>
     public partial class SettingWindow : Window {
-        public IEnumerable<CommonSetting> CommonSettings { get; private set; }
+        private IEnumerable<CommonSetting> commonSettings;
         private readonly IEnumerable<IWidget> widgets;
         private RoutedEventHandler routedEventHandler;
         public SettingWindow(IEnumerable<IWidget> widgets, IEnumerable<CommonSetting> settings) {
             InitializeComponent();
             this.widgets = widgets;
-            CommonSettings = settings;
+            commonSettings = settings;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e) {
-            WidgetListBox.ItemsSource = CommonSettings;
+            WidgetListBox.ItemsSource = commonSettings;
             WidgetListBox.DisplayMemberPath = "WidgetName";
             WidgetListBox.SelectedIndex = 0;
-            SetConfigInformation();
+            SetSettingInformation();
         }
 
-        private void SetConfigInformation() {
+        private void SetSettingInformation() {
             var item = (CommonSetting)WidgetListBox.SelectedItem;
+            var widget = widgets.OrEmptyIfNull().First(x => x.WidgetName == item.WidgetName);
             WidgetName.Text = item.WidgetName;
-            PosX.Text = item.PosX.ToString(DateTimeFormatInfo.InvariantInfo);
-            PosY.Text = item.PosY.ToString(DateTimeFormatInfo.InvariantInfo);
+            WidgetWidth.Text = Math.Round(widget.WidgetControl.ActualWidth).ToString(CultureInfo.InvariantCulture);
+            WidgetHeight.Text = Math.Round(widget.WidgetControl.ActualHeight).ToString(CultureInfo.InvariantCulture);
+            PosX.Text = item.PosX.ToString(CultureInfo.InvariantCulture);
+            PosY.Text = item.PosY.ToString(CultureInfo.InvariantCulture);
             AutoBoot.IsChecked = item.AutoBoot;
-            var widget = widgets.First(x => x.WidgetName == item.WidgetName);
             if(routedEventHandler != null) {
                 IndividualSettingButton.Click -= routedEventHandler;
             }
@@ -43,24 +48,27 @@ namespace Widgetz {
         }
 
         private void WidgetListBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            SetConfigInformation();
+            SetSettingInformation();
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e) {
             Close();
         }
 
-        private void ApplyButton_Click(object sender, RoutedEventArgs e) {
+        private async void ApplyButton_Click(object sender, RoutedEventArgs e) {
             var item = (CommonSetting)WidgetListBox.SelectedItem;
             try {
-                item.PosX = int.Parse(PosX.Text, DateTimeFormatInfo.InvariantInfo);
-                item.PosY = int.Parse(PosY.Text, DateTimeFormatInfo.InvariantInfo);
+                item.PosX = int.Parse(PosX.Text, CultureInfo.InvariantCulture);
+                item.PosY = int.Parse(PosY.Text, CultureInfo.InvariantCulture);
                 item.AutoBoot = (bool)AutoBoot.IsChecked;
                 WidgetListBox.SelectedItem = item;
-                CommonSettings = WidgetListBox.Items.Cast<CommonSetting>();
-                _ = MessageBox.Show($@"{WidgetName.Text}の設定を適用しました。\n(次回起動から適用)", "設定適用完了");
+                commonSettings = WidgetListBox.Items.Cast<CommonSetting>();
+                var settingPath = $@"{Directory.GetCurrentDirectory()}\CommonSettings.json";
+                var json = JsonConvert.SerializeObject(commonSettings, Formatting.Indented);
+                await File.WriteAllTextAsync(settingPath, json);
+                _ = MessageBox.Show($"{WidgetName.Text}の設定を保存しました。\n(次回起動から保存)", "設定保存完了");
             } catch {
-                _ = MessageBox.Show("入力値が不正です。", "設定適用不可", MessageBoxButton.OK, MessageBoxImage.Error);
+                _ = MessageBox.Show("入力値が不正です。", "設定保存不可", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

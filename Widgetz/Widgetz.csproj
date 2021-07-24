@@ -14,6 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="PInvoke.User32" Version="0.7.104" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,9 +39,6 @@
   <ItemGroup>
     <None Update="icon\icon16.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Icon32.ico">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

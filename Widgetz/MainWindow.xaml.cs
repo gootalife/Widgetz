@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
+using PInvoke;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,6 +31,7 @@ namespace Widgetz {
         }
 
         private async void Window_LoadedAsync(object sender, RoutedEventArgs e) {
+            MoveZToBottom();
             try {
                 TaskTrayIcon.Icon = Properties.Resources.Icon32;
                 // ウィジェットのロード
@@ -44,11 +47,11 @@ namespace Widgetz {
                     var newConfigs = new List<CommonSetting>();
                     foreach(var widget in widgets) {
                         // 共通設定が存在しないなら新規作成
-                        if(!commonSettings.Any(config => config.WidgetName == widget.WidgetName)) {
+                        if(!commonSettings.OrEmptyIfNull().Any(config => config.WidgetName == widget.WidgetName)) {
                             newConfigs.Add(new CommonSetting { WidgetName = widget.WidgetName, PosX = 0, PosY = 0, AutoBoot = false });
                         }
                     }
-                    var configsList = commonSettings.ToList();
+                    var configsList = commonSettings.OrEmptyIfNull().ToList();
                     configsList.AddRange(newConfigs);
                     commonSettings = configsList;
                 } else {
@@ -57,7 +60,7 @@ namespace Widgetz {
                     foreach(var widget in widgets) {
                         newConfigs.Add(new CommonSetting { WidgetName = widget.WidgetName, PosX = 0, PosY = 0, AutoBoot = false });
                     }
-                    var configsList = commonSettings.ToList();
+                    var configsList = commonSettings.OrEmptyIfNull().ToList();
                     configsList.AddRange(newConfigs);
                     commonSettings = configsList;
                     var json = JsonConvert.SerializeObject(commonSettings, Formatting.Indented);
@@ -83,22 +86,19 @@ namespace Widgetz {
                     foreach(var widget in widgets) {
                         var item = new MenuItem {
                             Header = widget.WidgetName,
-                            Name = widget.WidgetName
+                            Name = widget.WidgetName,
+                            IsChecked = isRunning[widget.WidgetName]
                         };
-                        var setting = commonSettings.First(config => config.WidgetName == widget.WidgetName);
-                        var bootMenu = new MenuItem {
-                            Header = isRunning[widget.WidgetName] ? "終了" : "起動"
-                        };
+                        var setting = commonSettings.OrEmptyIfNull().First(config => config.WidgetName == widget.WidgetName);
                         // クリックすると起動
-                        bootMenu.Click += async (s, e) => {
+                        item.Click += async (s, e) => {
                             if(!isRunning[widget.WidgetName]) {
                                 await BootWidget(widget, setting);
                             } else {
                                 RemoveWidget(widget);
                             }
-                            bootMenu.Header = isRunning[widget.WidgetName] ? "終了" : "起動";
+                            item.IsChecked = isRunning[widget.WidgetName];
                         };
-                        _ = item.Items.Add(bootMenu);
                         _ = WidgetMenu.Items.Add(item);
                     }
                 }), null);
@@ -108,7 +108,7 @@ namespace Widgetz {
         private async Task AutoBoot() {
             await Task.Run(async () => {
                 foreach(var widget in widgets) {
-                    var config = commonSettings.First(config => config.WidgetName == widget.WidgetName);
+                    var config = commonSettings.OrEmptyIfNull().First(config => config.WidgetName == widget.WidgetName);
                     if(config.AutoBoot) {
                         await BootWidget(widget, config);
                     }
@@ -128,14 +128,9 @@ namespace Widgetz {
             isRunning[widget.WidgetName] = true;
         }
 
-        private async void SettingMenu_ClickAsync(object sender, RoutedEventArgs e) {
+        private void SettingMenu_ClickAsync(object sender, RoutedEventArgs e) {
             var settingWindow = new SettingWindow(widgets, commonSettings);
             _ = settingWindow.ShowDialog();
-            // 変更後の設定を取得
-            commonSettings = settingWindow.CommonSettings;
-            var settingPath = $@"{Directory.GetCurrentDirectory()}\CommonSettings.json";
-            var json = JsonConvert.SerializeObject(commonSettings, Formatting.Indented);
-            await File.WriteAllTextAsync(settingPath, json);
         }
 
         private void CloseMenu_Click(object sender, RoutedEventArgs e) {
@@ -145,6 +140,15 @@ namespace Widgetz {
         private void RemoveWidget(IWidget widget) {
             Canvas.Children.Remove(widget.WidgetControl);
             isRunning[widget.WidgetName] = false;
+        }
+
+        private static void MoveZToBottom() {
+            var window = Process.GetCurrentProcess().MainWindowHandle;
+            _ = User32.SetWindowPos(window, new IntPtr(1), 0, 0, 0, 0, User32.SetWindowPosFlags.SWP_NOSIZE | User32.SetWindowPosFlags.SWP_NOMOVE);
+        }
+
+        private void Window_Activated(object sender, EventArgs e) {
+            MoveZToBottom();
         }
     }
 }
